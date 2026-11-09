@@ -10,10 +10,7 @@ import UniformTypeIdentifiers
 enum ShotController {
     static func runIfRequested() {
         let args = CommandLine.arguments
-        func value(_ key: String) -> String? {
-            guard let i = args.firstIndex(of: key), i + 1 < args.count else { return nil }
-            return args[i + 1]
-        }
+        func value(_ key: String) -> String? { CommandLineFlags.value(key, in: args) }
         let shot = value("--shot"), video = value("--video")
         guard shot != nil || video != nil else { return }
 
@@ -24,11 +21,23 @@ enum ShotController {
             if shot != nil, args.contains("--pause") { model.playback.toggleDemoPlay() }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            guard let window = NSApp.windows.first(where: { $0.isVisible && $0.canBecomeMain })
-                ?? NSApp.windows.first(where: { $0.isVisible }) else { exit(2) }
+        // A window restored in full screen takes a moment to appear, so poll for it.
+        func findWindow(_ attempt: Int, _ found: @escaping (NSWindow) -> Void) {
+            if let w = NSApp.windows.first(where: { $0.isVisible && $0.canBecomeMain && $0.title != SearchWindowController.title })
+                ?? NSApp.windows.first(where: { $0.isVisible }) {
+                found(w)
+            } else if attempt < 30 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { findWindow(attempt + 1, found) }
+            } else {
+                fputs("no window appeared. windows: \(NSApp.windows.map { "\($0.title)|visible=\($0.isVisible)|main=\($0.canBecomeMain)|\($0.frame)" })\n", stderr)
+                exit(2)
+            }
+        }
 
-            func arrange() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            findWindow(0) { window in
+
+            func arrange(_ window: NSWindow) {
                 if let s = value("--size")?.split(separator: "x").compactMap({ Double($0) }), s.count == 2 {
                     place(window, content: NSSize(width: s[0], height: s[1]))
                 }
@@ -41,11 +50,32 @@ enum ShotController {
             }
 
             // macOS restores a window that was left in full screen; a full-screen window ignores resizing.
+            func start() {
+                guard value("--window") == "search" else { arrange(window); return }
+                // The search window needs a track on screen to be meaningful, so wait for one first.
+                func openSearch(_ attempt: Int) {
+                    guard AppModel.shared.playback.track != nil || attempt > 20 else {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { openSearch(attempt + 1) }
+                        return
+                    }
+                    MainActor.assumeIsolated { SearchWindowController.shared.show() }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        guard let w = NSApp.windows.first(where: { $0.title == SearchWindowController.title && $0.isVisible }) else {
+                            fputs("search window not found\n", stderr)
+                            exit(3)
+                        }
+                        arrange(w)
+                    }
+                }
+                openSearch(0)
+            }
+
             if window.styleMask.contains(.fullScreen) {
                 window.toggleFullScreen(nil)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { arrange() }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { start() }
             } else {
-                arrange()
+                start()
+            }
             }
         }
     }

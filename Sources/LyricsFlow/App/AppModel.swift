@@ -18,7 +18,8 @@ final class AppModel {
         self.settings = settings
         self.playback = playback
         let wantsLiveShot = args.contains("--live")
-        isDemo = args.contains("--demo") || ((args.contains("--shot") || args.contains("--video")) && !wantsLiveShot)
+        let capturing = args.contains { $0 == "--shot" || $0.hasPrefix("--shot=") || $0 == "--video" || $0.hasPrefix("--video=") }
+        isDemo = args.contains("--demo") || (capturing && !wantsLiveShot)
         TrackFactory.attachDemoLyrics = args.contains("--demo-lyrics")
         if isDemo {
             playback.enterDemo(tracks: MockLibrary.tracks())

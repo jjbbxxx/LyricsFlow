@@ -5,11 +5,11 @@ import Foundation
 enum ResolveCommand {
     static func runIfRequested() -> Bool {
         let args = CommandLine.arguments
-        guard let i = args.firstIndex(of: "--resolve"), i + 1 < args.count else { return false }
-        let parts = args[i + 1].components(separatedBy: "|")
+        guard let spec = CommandLineFlags.value("--resolve", in: args) else { return false }
+        let parts = spec.components(separatedBy: "|")
         guard parts.count >= 2 else { print("usage: --resolve \"title|artist|duration\""); exit(2) }
         let meta = TrackMeta(title: parts[0], artist: parts[1], album: "", duration: parts.count > 2 ? Double(parts[2]) ?? 0 : 0)
-        let source = args.firstIndex(of: "--source").flatMap { $0 + 1 < args.count ? SourcePreference(rawValue: args[$0 + 1]) : nil } ?? .auto
+        let source = CommandLineFlags.value("--source", in: args).flatMap(SourcePreference.init(rawValue:)) ?? .auto
         Task {
             let started = Date()
             let lyrics = await LyricsResolver.shared.resolve(meta, source: source, refresh: args.contains("--refresh"))

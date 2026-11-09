@@ -63,7 +63,7 @@ struct LandscapeLayout: View {
         ZStack(alignment: .topLeading) {
             VStack(alignment: .leading, spacing: h * 0.021) {
                 CoverView(track: track, side: side)
-                TitleBlock(track: track, width: side, titleSize: max(w * 0.0078, 11))
+                TitleBlock(track: track, width: side, titleSize: max(w * 0.0105, 13))
             }
             .offset(x: w * 0.11, y: h * 0.169)
 

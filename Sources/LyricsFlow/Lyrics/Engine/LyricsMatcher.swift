@@ -7,11 +7,15 @@ struct Candidate {
     let source: String
     /// Source-specific handle used to fetch the lyric (song id, mid or hash).
     let ref: String
+    /// Present when the search response already carries the lyric (LRCLIB).
+    var inlineLyrics: String? = nil
 }
 
 /// Port of lyrics.py `_variants` / `_score` / `_dur_ok`.
 enum LyricsMatcher {
     static let minimumScore = 0.55
+    /// A candidate this good ends the query-variant loop early, which keeps request volume low.
+    static let confidentScore = 0.92
     private static let brackets = try! NSRegularExpression(pattern: "[\\(\\[（【].*?[\\)\\]）】]")
 
     static func variants(title: String, artist: String) -> [String] {

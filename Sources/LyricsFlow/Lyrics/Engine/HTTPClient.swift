@@ -26,6 +26,15 @@ enum HTTPClient {
         return parse(data)
     }
 
+    static func jsonArray(_ base: String, _ params: [(String, String)], headers: [String: String] = [:]) async -> [[String: Any]] {
+        guard let url = URL(string: base + "?" + query(params)) else { return [] }
+        var req = URLRequest(url: url)
+        req.setValue(browserUA, forHTTPHeaderField: "User-Agent")
+        headers.forEach { req.setValue($1, forHTTPHeaderField: $0) }
+        guard let (data, _) = try? await session.data(for: req) else { return [] }
+        return (try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]) ?? []
+    }
+
     /// Tolerates JSONP wrappers such as `callback({...})`.
     static func parse(_ data: Data) -> [String: Any]? {
         if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] { return obj }

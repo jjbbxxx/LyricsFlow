@@ -28,6 +28,9 @@ struct LyricsCommands: Commands {
                 .pickerStyle(.inline)
                 .labelsHidden()
             }
+            Button("搜索歌词…") { SearchWindowController.shared.show() }
+                .keyboardShortcut("l")
+                .disabled(playback.track == nil)
             Button("重新匹配") { AppModel.shared.rematchLyrics() }
                 .keyboardShortcut("r")
                 .disabled(playback.track == nil || AppModel.shared.isDemo)
