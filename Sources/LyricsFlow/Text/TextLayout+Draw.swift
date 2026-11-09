@@ -9,8 +9,9 @@ enum LineDrawMode {
 }
 
 extension TextLayout {
-    /// Soft leading edge width of the sweep, in points.
+    /// Minimum soft-edge width of the sweep in points; it grows with the font size.
     static let sweepEdge: CGFloat = 9
+    static let sweepEdgeEm: CGFloat = 0.3
 
     func draw(in cg: CGContext, mode: LineDrawMode) {
         cg.saveGState()
@@ -60,7 +61,7 @@ extension TextLayout {
         }
         guard let (i, s) = active else { return }
 
-        let edge = min(TextLayout.sweepEdge, (s.x1 - s.x0) * 0.8)
+        let edge = min(max(TextLayout.sweepEdge, fontSize * TextLayout.sweepEdgeEm), s.x1 - s.x0)
         let span = s.t1 - s.t0
         let f = span > 0 ? CGFloat(min(max((t - s.t0) / span, 0), 1)) : 1
         let pos = s.x0 + f * ((s.x1 - s.x0) + edge)
@@ -72,8 +73,10 @@ extension TextLayout {
         drawLine(line, in: cg)
         cg.setBlendMode(.destinationIn)
         let space = CGColorSpaceCreateDeviceGray()
-        let colors = [CGColor(gray: 1, alpha: 1), CGColor(gray: 1, alpha: 0)] as CFArray
-        if let g = CGGradient(colorsSpace: space, colors: colors, locations: [0, 1]) {
+        // Smoothstep falloff: gentler at both ends than a straight ramp.
+        let alphas: [CGFloat] = [1, 0.844, 0.5, 0.156, 0]
+        let colors = alphas.map { CGColor(gray: 1, alpha: $0) } as CFArray
+        if let g = CGGradient(colorsSpace: space, colors: colors, locations: [0, 0.25, 0.5, 0.75, 1]) {
             cg.drawLinearGradient(
                 g,
                 start: CGPoint(x: pos - edge, y: 0),

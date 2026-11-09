@@ -93,8 +93,8 @@ struct PortraitLayout: View {
                 TitleBlock(track: track, width: side, titleSize: side * 0.05, alignment: .center)
             }
             .padding(.top, top)
-            LyricsView(track: track, fontSize: font, centered: true)
-                .frame(width: w * 0.86, height: lyricsH)
+            LyricsView(track: track, fontSize: font, centered: false)
+                .frame(width: side, height: lyricsH)
                 .padding(.top, h * 0.01)
         }
         .frame(width: w, height: h, alignment: .top)

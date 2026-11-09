@@ -14,7 +14,7 @@ struct CoverView: View {
     }
 }
 
-/// Song title and artist under the cover. `scale` is the title font size in points.
+/// Title and "Artist — Album" under the cover. Either line scrolls when it is too long.
 struct TitleBlock: View {
     let track: Track
     let width: CGFloat
@@ -22,16 +22,15 @@ struct TitleBlock: View {
     var alignment: HorizontalAlignment = .leading
 
     var body: some View {
+        let align: Alignment = alignment == .leading ? .leading : .center
         VStack(alignment: alignment, spacing: titleSize * 0.2) {
-            Text(track.title)
-                .font(.system(size: titleSize, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.95))
-                .lineLimit(1)
-            Text(track.artist)
-                .font(.system(size: titleSize * 0.88, weight: .regular))
-                .foregroundStyle(.white.opacity(0.68))
-                .lineLimit(1)
+            MarqueeText(text: track.title.isEmpty ? "未知曲目" : track.title,
+                        size: titleSize, weight: .semibold, opacity: 0.95, width: width, alignment: align)
+                .id(track.id)
+            MarqueeText(text: TrackText.subtitle(artist: track.artist, album: track.album),
+                        size: titleSize * 0.88, weight: .regular, opacity: 0.68, width: width, alignment: align)
+                .id(track.id)
         }
-        .frame(width: width, alignment: alignment == .leading ? .leading : .center)
+        .frame(width: width, alignment: align)
     }
 }

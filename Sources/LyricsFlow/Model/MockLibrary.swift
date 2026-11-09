@@ -64,7 +64,7 @@ enum MockLibrary {
             (40.0, "and when the morning comes I will be gone"),
             (45.5, "留下一点点噪音"),
         ])
-        return make(2, "Static Bloom", "Mono Demo", "Line Sync Only", 54, .mono, lines, source: "mock-lrc")
+        return make(2, "Static Bloom", "Mono Demo Ensemble, Guest Vocalist & Another Long Name", "A Very Long Album Title For Marquee Testing", 54, .mono, lines, source: "mock-lrc")
     }
 
     private static func paperSky() -> Track {

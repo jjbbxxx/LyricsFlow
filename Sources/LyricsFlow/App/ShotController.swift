@@ -25,15 +25,27 @@ enum ShotController {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            guard let window = NSApp.windows.first(where: { $0.isVisible }) else { exit(2) }
-            if let s = value("--size")?.split(separator: "x").compactMap({ Double($0) }), s.count == 2 {
-                place(window, content: NSSize(width: s[0], height: s[1]))
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + (model.isDemo ? 2.0 : 4.0)) {
-                if let path = shot { capturePNG(window, to: path); exit(0) }
-                if let path = video {
-                    VideoRecorder.record(window, to: path, seconds: Double(value("--seconds") ?? "8") ?? 8) { exit(0) }
+            guard let window = NSApp.windows.first(where: { $0.isVisible && $0.canBecomeMain })
+                ?? NSApp.windows.first(where: { $0.isVisible }) else { exit(2) }
+
+            func arrange() {
+                if let s = value("--size")?.split(separator: "x").compactMap({ Double($0) }), s.count == 2 {
+                    place(window, content: NSSize(width: s[0], height: s[1]))
                 }
+                DispatchQueue.main.asyncAfter(deadline: .now() + (model.isDemo ? 2.0 : 4.0)) {
+                    if let path = shot { capturePNG(window, to: path); exit(0) }
+                    if let path = video {
+                        VideoRecorder.record(window, to: path, seconds: Double(value("--seconds") ?? "8") ?? 8) { exit(0) }
+                    }
+                }
+            }
+
+            // macOS restores a window that was left in full screen; a full-screen window ignores resizing.
+            if window.styleMask.contains(.fullScreen) {
+                window.toggleFullScreen(nil)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { arrange() }
+            } else {
+                arrange()
             }
         }
     }
@@ -47,6 +59,8 @@ enum ShotController {
         frame.size.width = min(frame.width, vis.width)
         frame.size.height = min(frame.height, vis.height)
         frame.origin = NSPoint(x: vis.midX - frame.width / 2, y: vis.midY - frame.height / 2)
+        // A window restored onto another display is clamped to that display, so hop screens first.
+        window.setFrameOrigin(NSPoint(x: vis.minX + 40, y: vis.minY + 40))
         window.setFrame(frame, display: true)
     }
 
