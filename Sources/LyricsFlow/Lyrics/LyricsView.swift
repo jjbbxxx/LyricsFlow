@@ -25,11 +25,15 @@ enum LyricStyle {
     /// Extra space between lyric lines, in em; measured from Apple Music (~0.99).
     static let paragraphGap: CGFloat = 0.99
     static let anchor = 0.43
+    /// Apple Music moves lines top to bottom in sequence (measured from a screen recording, ~0.04 s apart).
+    static func stagger(line i: Int, current: Int) -> Double {
+        Double(min(max(i - (current - 1), 0), 8)) * 0.04
+    }
     static let scroll = Animation.timingCurve(0.22, 1, 0.36, 1, duration: 0.85)
 }
 
 struct LyricsView: View {
-    @EnvironmentObject var player: MockPlayer
+    @EnvironmentObject var player: PlaybackModel
     @EnvironmentObject var settings: AppSettings
     let track: Track
     let fontSize: CGFloat
@@ -38,6 +42,24 @@ struct LyricsView: View {
 
     var body: some View {
         GeometryReader { geo in
+            if track.lyrics.lines.isEmpty {
+                emptyState(geo.size)
+            } else {
+                content(geo)
+            }
+        }
+    }
+
+    private func emptyState(_ size: CGSize) -> some View {
+        Text(player.lyricsPhase == .searching ? "正在搜索歌词…" : "暂无同步歌词")
+            .font(.system(size: fontSize * 0.7, weight: .bold))
+            .foregroundStyle(.white.opacity(0.35))
+            .frame(width: size.width, alignment: centered ? .center : .leading)
+            .offset(y: size.height * LyricStyle.anchor - fontSize * 0.5)
+    }
+
+    private func content(_ geo: GeometryProxy) -> some View {
+        Group {
             let layouts = cache.layouts(for: track, width: geo.size.width, fontSize: fontSize, centered: centered)
             let gap = fontSize * LyricStyle.paragraphGap
             let idx = player.currentIndex
@@ -60,7 +82,7 @@ struct LyricsView: View {
                         .blur(radius: LyricStyle.blur(d) * settings.blurScale)
                         .opacity(LyricStyle.opacity(d))
                         .offset(y: tops[i] + shift)
-                        .animation(animation, value: idx)
+                        .animation(animation.map { $0.delay(LyricStyle.stagger(line: i, current: idx)) }, value: idx)
                         .allowsHitTesting(false)
                     }
                 }

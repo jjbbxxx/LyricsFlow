@@ -1,11 +1,18 @@
 import SwiftUI
 
 struct RootView: View {
-    @EnvironmentObject var player: MockPlayer
+    @EnvironmentObject var player: PlaybackModel
     @EnvironmentObject var settings: AppSettings
 
     var body: some View {
-        let track = player.track
+        if let track = player.track {
+            stage(track)
+        } else {
+            IdleView(status: player.status)
+        }
+    }
+
+    private func stage(_ track: Track) -> some View {
         GeometryReader { geo in
             let w = geo.size.width, h = geo.size.height
             let portrait = isPortrait(w, h)
@@ -35,7 +42,7 @@ struct RootView: View {
     }
 
     private func isPortrait(_ w: CGFloat, _ h: CGFloat) -> Bool {
-        switch settings.layoutMode {
+        switch settings.effectiveLayout {
         case .auto: return w < h * 1.05
         case .landscape: return false
         case .portrait: return true
@@ -79,11 +86,11 @@ struct PortraitLayout: View {
         let top = h * 0.07
         let header = side + side * 0.07 + side * 0.17
         let lyricsH = max(h - top - header - h * 0.01, 100)
-        let font = min(w * 0.067, lyricsH * 0.15) * settings.lyricScale
+        let font = min(w * 0.05, lyricsH * 0.11) * settings.lyricScale
         VStack(spacing: 0) {
             VStack(spacing: side * 0.07) {
                 CoverView(track: track, side: side)
-                TitleBlock(track: track, width: side, titleSize: side * 0.078, alignment: .center)
+                TitleBlock(track: track, width: side, titleSize: side * 0.05, alignment: .center)
             }
             .padding(.top, top)
             LyricsView(track: track, fontSize: font, centered: true)

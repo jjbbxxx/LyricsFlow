@@ -5,7 +5,7 @@ import ImageIO
 import UniformTypeIdentifiers
 
 /// Visual-acceptance hooks.
-///   --shot out.png    [--track N] [--t SEC] [--size WxH] [--layout auto|landscape|portrait] [--pause]
+///   --shot out.png    [--live] [--track N] [--t SEC] [--size WxH] [--layout auto|landscape|portrait] [--pause]
 ///   --video out.mov   [--track N] [--t SEC] [--size WxH] [--layout ...] [--seconds S]
 enum ShotController {
     static func runIfRequested() {
@@ -18,16 +18,18 @@ enum ShotController {
         guard shot != nil || video != nil else { return }
 
         let model = AppModel.shared
-        if let l = value("--layout"), let mode = LayoutMode(rawValue: l) { model.settings.layoutMode = mode }
-        model.player.select(Int(value("--track") ?? "0") ?? 0, at: Double(value("--t") ?? "0") ?? 0)
-        if shot != nil, args.contains("--pause") { model.player.togglePlay() }
+        if let l = value("--layout"), let mode = LayoutMode(rawValue: l) { model.settings.layoutOverride = mode }
+        if model.isDemo {
+            model.playback.selectDemo(Int(value("--track") ?? "0") ?? 0, at: Double(value("--t") ?? "0") ?? 0)
+            if shot != nil, args.contains("--pause") { model.playback.toggleDemoPlay() }
+        }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             guard let window = NSApp.windows.first(where: { $0.isVisible }) else { exit(2) }
             if let s = value("--size")?.split(separator: "x").compactMap({ Double($0) }), s.count == 2 {
                 place(window, content: NSSize(width: s[0], height: s[1]))
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + (model.isDemo ? 2.0 : 4.0)) {
                 if let path = shot { capturePNG(window, to: path); exit(0) }
                 if let path = video {
                     VideoRecorder.record(window, to: path, seconds: Double(value("--seconds") ?? "8") ?? 8) { exit(0) }

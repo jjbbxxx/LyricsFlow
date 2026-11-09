@@ -9,4 +9,9 @@ struct Track: Identifiable {
     let cover: NSImage
     let palette: Palette
     let lyrics: Lyrics
+
+    func withLyrics(_ lyrics: Lyrics) -> Track {
+        Track(id: id, title: title, artist: artist, album: album, duration: duration,
+              cover: cover, palette: palette, lyrics: lyrics)
+    }
 }

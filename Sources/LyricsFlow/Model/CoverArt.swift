@@ -2,7 +2,7 @@ import AppKit
 
 /// Procedural placeholder covers covering the colour cases the background engine must handle.
 enum CoverArt {
-    enum Kind { case blue, gold, mono, pale }
+    enum Kind { case blue, gold, mono, pale, placeholder }
 
     static func make(_ kind: Kind, side: CGFloat = 720) -> NSImage {
         NSImage(size: NSSize(width: side, height: side), flipped: false) { rect in
@@ -12,6 +12,7 @@ enum CoverArt {
             case .gold: drawGold(cg, rect)
             case .mono: drawMono(cg, rect)
             case .pale: drawPale(cg, rect)
+            case .placeholder: gradient(cg, rect, [(0.30, 0.31, 0.34), (0.16, 0.17, 0.19)])
             }
             return true
         }

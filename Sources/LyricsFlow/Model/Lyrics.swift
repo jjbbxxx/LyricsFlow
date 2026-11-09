@@ -2,13 +2,13 @@ import Foundation
 
 enum SyncPrecision { case word, line, plain }
 
-struct LyricWord: Hashable {
+struct LyricWord: Hashable, Codable {
     let text: String
     let start: Double
     let end: Double
 }
 
-struct LyricLine: Identifiable, Hashable {
+struct LyricLine: Identifiable, Hashable, Codable {
     let id: Int
     let start: Double
     let end: Double
@@ -45,7 +45,7 @@ struct LyricLine: Identifiable, Hashable {
     var isWordLevel: Bool { words != nil }
 }
 
-struct Lyrics {
+struct Lyrics: Codable {
     let source: String
     let lines: [LyricLine]
 

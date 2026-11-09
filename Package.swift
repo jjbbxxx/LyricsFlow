@@ -8,7 +8,12 @@ let package = Package(
         .executableTarget(
             name: "LyricsFlow",
             path: "Sources/LyricsFlow"
-        )
+        ),
+        .testTarget(
+            name: "LyricsFlowTests",
+            dependencies: ["LyricsFlow"],
+            path: "Tests/LyricsFlowTests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )

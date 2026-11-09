@@ -12,9 +12,15 @@ enum MockLibrary {
                      palette: PaletteExtractor.extract(from: cover), lyrics: Lyrics(source: source, lines: lines))
     }
 
+    static func demoLyrics() -> Lyrics { Lyrics(source: "mock-word", lines: echoesLines()) }
+
     private static func echoes() -> Track {
+        make(0, "Between The Echoes", "Lyrics Flow · Demo", "Visual Demo", 56, .blue, echoesLines(), source: "mock-word")
+    }
+
+    private static func echoesLines() -> [LyricLine] {
         let s = LyricBuilder.spaced
-        let lines = [
+        return [
             s(0, 2.0, "the|0.35 city|0.45 glows|0.6 in|0.25 the|0.25 distance|1.1"),
             s(1, 6.2, "i|0.2 can|0.35 hear|0.45 the|0.25 rain|0.7 again|1.7"),
             s(2, 10.8, "you|0.3 know|0.4 you|0.3 can|0.35 take|0.5 me|0.3 anywhere|1.5"),
@@ -26,7 +32,6 @@ enum MockLibrary {
             s(8, 43.0, "when|0.4 the|0.25 silence|0.9 comes|0.6 around|1.1"),
             s(9, 48.0, "we|0.3 will|0.4 sing|0.8 it|0.3 back|0.6 again|2.3"),
         ]
-        return make(0, "Between The Echoes", "Lyrics Flow · Demo", "Visual Demo", 56, .blue, lines, source: "mock-word")
     }
 
     private static func nightFlight() -> Track {

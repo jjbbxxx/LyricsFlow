@@ -9,21 +9,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] e in
             self?.handle(e) == true ? nil : e
         }
+        if ResolveCommand.runIfRequested() { return }
         ShotController.runIfRequested()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
-    /// Debug keys for the mock player in M1 (no on-screen playback controls by design).
+    /// Debug keys. Transport keys only drive the local demo player and never reach Apple Music.
     private func handle(_ e: NSEvent) -> Bool {
         let model = AppModel.shared
         let step: Double = e.modifierFlags.contains(.shift) ? 30 : 5
         switch e.keyCode {
-        case 49: model.player.togglePlay()
-        case 123: model.player.seek(by: -step)
-        case 124: model.player.seek(by: step)
-        case 45: model.player.next()
-        case 35: model.player.previous()
+        case 49 where model.isDemo: model.playback.toggleDemoPlay()
+        case 123 where model.isDemo: model.playback.seekDemo(by: -step)
+        case 124 where model.isDemo: model.playback.seekDemo(by: step)
+        case 45 where model.isDemo: model.playback.nextDemo()
+        case 35 where model.isDemo: model.playback.previousDemo()
         case 33: model.settings.timeOffset -= 0.1
         case 30: model.settings.timeOffset += 0.1
         case 46: model.settings.motion = model.settings.motion > 0 ? 0 : 1

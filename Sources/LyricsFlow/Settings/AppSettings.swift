@@ -19,7 +19,13 @@ final class AppSettings: ObservableObject {
     @Published var blurScale: Double { didSet { store.set(blurScale, forKey: "blurScale") } }
     @Published var timeOffset: Double { didSet { store.set(timeOffset, forKey: "timeOffset") } }
     @Published var motion: Double { didSet { store.set(motion, forKey: "motion") } }
+    @Published var lyricSource: SourcePreference { didSet { store.set(lyricSource.rawValue, forKey: "lyricSource") } }
     @Published var layoutMode: LayoutMode { didSet { store.set(layoutMode.rawValue, forKey: "layoutMode") } }
+
+    /// Command-line override for screenshots and recordings; never persisted.
+    @Published var layoutOverride: LayoutMode?
+
+    var effectiveLayout: LayoutMode { layoutOverride ?? layoutMode }
 
     init() {
         func value(_ key: String, _ def: Double) -> Double {
@@ -29,6 +35,7 @@ final class AppSettings: ObservableObject {
         blurScale = value("blurScale", 1.0)
         timeOffset = value("timeOffset", 0)
         motion = value("motion", 1.0)
+        lyricSource = SourcePreference(rawValue: UserDefaults.standard.string(forKey: "lyricSource") ?? "") ?? .auto
         layoutMode = LayoutMode(rawValue: UserDefaults.standard.string(forKey: "layoutMode") ?? "") ?? .auto
     }
 }

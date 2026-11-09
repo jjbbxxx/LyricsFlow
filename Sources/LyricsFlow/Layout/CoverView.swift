@@ -28,7 +28,7 @@ struct TitleBlock: View {
                 .foregroundStyle(.white.opacity(0.95))
                 .lineLimit(1)
             Text(track.artist)
-                .font(.system(size: titleSize * 0.93, weight: .regular))
+                .font(.system(size: titleSize * 0.88, weight: .regular))
                 .foregroundStyle(.white.opacity(0.68))
                 .lineLimit(1)
         }

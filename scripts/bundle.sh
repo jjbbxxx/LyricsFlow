@@ -22,8 +22,12 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleVersion</key><string>1</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>NSAppTransportSecurity</key><dict><key>NSExceptionDomains</key><dict>
+    <key>kugou.com</key><dict><key>NSIncludesSubdomains</key><true/><key>NSExceptionAllowsInsecureHTTPLoads</key><true/></dict>
+  </dict></dict>
   <key>NSAppleEventsUsageDescription</key><string>LyricsFlow reads the current track and playback position from Music to show synced lyrics. It never controls playback.</string>
 </dict></plist>
 PLIST
-codesign --force --sign - "$APP" >/dev/null
+# Identifier-only designated requirement keeps the Automation grant valid across rebuilds.
+codesign --force --sign - --identifier com.jbx.LyricsFlow -r='designated => identifier "com.jbx.LyricsFlow"' "$APP" >/dev/null
 echo "$APP"

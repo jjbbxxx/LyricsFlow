@@ -8,15 +8,12 @@ struct LyricsFlowApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
-                .environmentObject(model.player)
+                .environmentObject(model.playback)
                 .environmentObject(model.settings)
                 .frame(minWidth: 360, minHeight: 360)
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1280, height: 720)
-
-        Settings {
-            SettingsView().environmentObject(model.settings)
-        }
+        .commands { LyricsCommands(settings: model.settings, playback: model.playback) }
     }
 }
