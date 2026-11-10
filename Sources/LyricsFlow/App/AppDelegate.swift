@@ -2,10 +2,12 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var monitor: Any?
+    private var iconController: AppIconController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+        iconController = AppIconController(settings: AppModel.shared.settings, playback: AppModel.shared.playback)
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] e in
             self?.handle(e) == true ? nil : e
         }

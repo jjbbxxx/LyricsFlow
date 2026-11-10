@@ -21,6 +21,7 @@ final class AppSettings: ObservableObject {
     @Published var motion: Double { didSet { store.set(motion, forKey: "motion") } }
     @Published var lyricSource: SourcePreference { didSet { store.set(lyricSource.rawValue, forKey: "lyricSource") } }
     @Published var layoutMode: LayoutMode { didSet { store.set(layoutMode.rawValue, forKey: "layoutMode") } }
+    @Published var appIcon: AppIconChoice { didSet { store.set(appIcon.rawValue, forKey: "appIcon") } }
 
     /// Command-line override for screenshots and recordings; never persisted.
     @Published var layoutOverride: LayoutMode?
@@ -37,5 +38,6 @@ final class AppSettings: ObservableObject {
         motion = value("motion", 1.0)
         lyricSource = SourcePreference(rawValue: UserDefaults.standard.string(forKey: "lyricSource") ?? "") ?? .auto
         layoutMode = LayoutMode(rawValue: UserDefaults.standard.string(forKey: "layoutMode") ?? "") ?? .auto
+        appIcon = AppIconChoice(rawValue: UserDefaults.standard.string(forKey: "appIcon") ?? "") ?? .cover
     }
 }

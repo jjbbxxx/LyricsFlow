@@ -49,6 +49,13 @@ struct LyricsCommands: Commands {
                 .pickerStyle(.inline)
                 .labelsHidden()
             }
+            Menu("图标") {
+                Picker("图标", selection: $settings.appIcon) {
+                    ForEach(AppIconChoice.allCases) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            }
             Divider()
             Button("增大歌词") { scale(0.05) }.keyboardShortcut("=")
             Button("减小歌词") { scale(-0.05) }.keyboardShortcut("-")

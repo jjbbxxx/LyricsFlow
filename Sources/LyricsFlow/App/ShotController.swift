@@ -11,6 +11,23 @@ enum ShotController {
     static func runIfRequested() {
         let args = CommandLine.arguments
         func value(_ key: String) -> String? { CommandLineFlags.value(key, in: args) }
+        // Debug: contact sheet of the cover-following icon for every demo track.
+        if let path = value("--icon-sheet") {
+            let tracks = MockLibrary.tracks()
+            let cell = 300
+            let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: cell * tracks.count, pixelsHigh: cell, bitsPerSample: 8,
+                                       samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+                                       bytesPerRow: 0, bitsPerPixel: 0)!
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+            for (i, t) in tracks.enumerated() {
+                IconArt.image(stops: IconArt.stops(from: t.palette), size: CGFloat(cell))
+                    .draw(in: NSRect(x: i * cell, y: 0, width: cell, height: cell))
+            }
+            NSGraphicsContext.restoreGraphicsState()
+            try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: path))
+            exit(0)
+        }
         let shot = value("--shot"), video = value("--video")
         guard shot != nil || video != nil else { return }
 
@@ -19,6 +36,20 @@ enum ShotController {
         if model.isDemo {
             model.playback.selectDemo(Int(value("--track") ?? "0") ?? 0, at: Double(value("--t") ?? "0") ?? 0)
             if shot != nil, args.contains("--pause") { model.playback.toggleDemoPlay() }
+            // Debug: jump to the next demo track after N seconds, to capture the cover transition mid-flight.
+            if let delay = value("--advance").flatMap({ Double($0) }) {
+                let next = (Int(value("--track") ?? "0") ?? 0) + 1
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    model.playback.selectDemo(next, at: Double(value("--t") ?? "0") ?? 0)
+                }
+            }
+            // Debug: swap in another demo track's lyrics (same track id), like picking a lyric in the search window.
+            if let n = value("--swap-lyrics").flatMap({ Int($0) }) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                    guard let id = model.playback.track?.id else { return }
+                    model.playback.updateLyrics(trackID: id, lyrics: MockLibrary.tracks()[n].lyrics)
+                }
+            }
         }
 
         // A window restored in full screen takes a moment to appear, so poll for it.

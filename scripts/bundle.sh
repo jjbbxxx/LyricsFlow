@@ -26,6 +26,8 @@ if (( ${#BINS[@]} > 1 )); then
 else
   cp "${BINS[1]}" "$APP/Contents/MacOS/LyricsFlow"
 fi
+cp assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+mkdir -p "$APP/Contents/Resources/Icons" && cp assets/icons/*.png "$APP/Contents/Resources/Icons/"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -34,6 +36,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleDisplayName</key><string>LyricsFlow</string>
   <key>CFBundleIdentifier</key><string>com.jbx.LyricsFlow</string>
   <key>CFBundleExecutable</key><string>LyricsFlow</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleVersion</key><string>${VERSION}</string>
