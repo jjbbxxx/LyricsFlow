@@ -31,9 +31,6 @@ struct RootView: View {
                     if portrait { PortraitLayout(track: track, size: geo.size) }
                     else { LandscapeLayout(track: track, size: geo.size) }
                 }
-                .id(track.id)
-                .transition(.opacity)
-                .animation(.easeInOut(duration: 0.5), value: track.id)
             }
             .frame(width: w, height: h)
         }
@@ -63,11 +60,11 @@ struct LandscapeLayout: View {
         ZStack(alignment: .topLeading) {
             VStack(alignment: .leading, spacing: h * 0.021) {
                 CoverView(track: track, side: side)
-                TitleBlock(track: track, width: side, titleSize: max(w * 0.0105, 13))
+                Fading(trackID: track.id) { TitleBlock(track: track, width: side, titleSize: max(w * 0.0105, 13)) }
             }
             .offset(x: w * 0.11, y: h * 0.169)
 
-            LyricsView(track: track, fontSize: font, centered: false)
+            Fading(trackID: track.id) { LyricsView(track: track, fontSize: font, centered: false) }
                 .frame(width: w * 0.455, height: h)
                 .offset(x: w * 0.511)
         }
@@ -90,13 +87,30 @@ struct PortraitLayout: View {
         VStack(spacing: 0) {
             VStack(spacing: side * 0.07) {
                 CoverView(track: track, side: side)
-                TitleBlock(track: track, width: side, titleSize: side * 0.05, alignment: .center)
+                Fading(trackID: track.id) { TitleBlock(track: track, width: side, titleSize: side * 0.05, alignment: .center) }
             }
             .padding(.top, top)
-            LyricsView(track: track, fontSize: font, centered: false)
+            Fading(trackID: track.id) { LyricsView(track: track, fontSize: font, centered: false) }
                 .frame(width: side, height: lyricsH)
                 .padding(.top, h * 0.01)
         }
         .frame(width: w, height: h, alignment: .top)
+    }
+}
+
+/// Swaps its content when the track changes: the old content leaves quickly, the new one arrives a
+/// beat later, so the two never read as overlapping text. They share a ZStack, so the layout holds still.
+struct Fading<Content: View>: View {
+    let trackID: Int
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        ZStack {
+            content().id(trackID).transition(.asymmetric(
+                insertion: .opacity.animation(.easeOut(duration: 0.45).delay(0.22)),
+                removal: .opacity.animation(.easeIn(duration: 0.2))
+            ))
+        }
+        .animation(.easeInOut(duration: 0.5), value: trackID)
     }
 }

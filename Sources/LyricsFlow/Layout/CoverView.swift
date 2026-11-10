@@ -1,16 +1,64 @@
 import SwiftUI
 
+/// Cover art. On a track change the old cover burns away into the new one, ordered by brightness
+/// (see `LumaDissolve`), over the same time as the background cross-fade. No scaling or movement.
 struct CoverView: View {
+    static let duration: TimeInterval = 1.4
+
+    private struct Active {
+        let engine: LumaDissolve
+        let start: Date
+        let token: Int
+    }
+
     let track: Track
     let side: CGFloat
 
+    @State private var current: NSImage
+    @State private var active: Active?
+    @State private var tokens = 0
+
+    init(track: Track, side: CGFloat) {
+        self.track = track
+        self.side = side
+        _current = State(initialValue: track.cover)
+    }
+
     var body: some View {
-        Image(nsImage: track.cover)
-            .resizable()
-            .interpolation(.high)
-            .frame(width: side, height: side)
-            .clipShape(RoundedRectangle(cornerRadius: side * 0.03, style: .continuous))
-            .shadow(color: .black.opacity(0.32), radius: side * 0.06, y: side * 0.03)
+        Group {
+            if let active {
+                TimelineView(.animation) { ctx in
+                    let p = min(max(ctx.date.timeIntervalSince(active.start) / Self.duration, 0), 1)
+                    let eased = p * p * (3 - 2 * p)
+                    if let frame = active.engine.frame(progress: eased) {
+                        Image(decorative: frame, scale: 1).resizable().interpolation(.high)
+                    } else {
+                        Image(nsImage: current).resizable().interpolation(.high)
+                    }
+                }
+            } else {
+                Image(nsImage: current).resizable().interpolation(.high)
+            }
+        }
+        .frame(width: side, height: side)
+        .clipShape(RoundedRectangle(cornerRadius: side * 0.03, style: .continuous))
+        .shadow(color: .black.opacity(0.32), radius: side * 0.06, y: side * 0.03)
+        .onChange(of: track.id) { _, _ in begin() }
+    }
+
+    private func begin() {
+        let old = current
+        current = track.cover
+        tokens += 1
+        let token = tokens
+        guard let engine = LumaDissolve(from: old, to: track.cover, pixels: Int(min(1024, side * 2))) else {
+            active = nil
+            return
+        }
+        active = Active(engine: engine, start: Date(), token: token)
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.duration + 0.05) {
+            if active?.token == token { active = nil }
+        }
     }
 }
 
