@@ -5,7 +5,7 @@ private final class LayoutCache {
     private var layouts: [TextLayout] = []
 
     func layouts(for track: Track, width: CGFloat, fontSize: CGFloat, centered: Bool) -> [TextLayout] {
-        let k = "\(track.id)|\(Int(width))|\(Int(fontSize * 10))|\(centered)"
+        let k = "\(track.id)|\(track.lyrics.fingerprint)|\(Int(width))|\(Int(fontSize * 10))|\(centered)"
         if k != key {
             layouts = track.lyrics.lines.map {
                 TextLayout(line: $0, width: width, fontSize: fontSize, centered: centered)

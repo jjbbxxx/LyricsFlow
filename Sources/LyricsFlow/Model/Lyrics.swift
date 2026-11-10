@@ -49,6 +49,13 @@ struct Lyrics: Codable {
     let source: String
     let lines: [LyricLine]
 
+    /// Identity of the lyric content. Anything that caches per-line layout must key on this, not on the
+    /// track id: picking another lyric for the same track keeps the id but changes every line.
+    var fingerprint: String {
+        let first = lines.first, last = lines.last
+        return "\(source)|\(lines.count)|\(first?.start ?? 0)|\(last?.start ?? 0)|\(first?.text.prefix(24) ?? "")|\(last?.text.prefix(24) ?? "")"
+    }
+
     var precision: SyncPrecision {
         lines.contains(where: \.isWordLevel) ? .word : .line
     }
