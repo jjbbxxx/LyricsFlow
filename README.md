@@ -37,8 +37,8 @@ macOS 14 或更高，已安装“音乐”App。
 需要 Swift 6.2+，只装 Command Line Tools 即可。
 
 ```
-scripts/bundle.sh                # build/LyricsFlow.app
-VERSION=0.2.0 scripts/make_dmg.sh   # build/LyricsFlow-0.2.0.dmg（arm64 + x86_64，需在登录的桌面会话里运行）
+scripts/bundle.sh                # build.noindex/LyricsFlow.app
+VERSION=0.2.0 scripts/make_dmg.sh   # build.noindex/LyricsFlow-0.2.0.dmg（arm64 + x86_64，需在登录的桌面会话里运行）
 swift scripts/make_icon.swift . pngs   # 重绘 assets/icons/*.png（运行时可选图标）
-swift scripts/make_icon.swift . iconset aurora && iconutil -c icns build/AppIcon.iconset -o assets/AppIcon.icns   # 默认图标
+swift scripts/make_icon.swift . iconset aurora && iconutil -c icns build.noindex/AppIcon.iconset -o assets/AppIcon.icns   # 默认图标
 ```

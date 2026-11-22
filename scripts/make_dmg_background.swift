@@ -1,4 +1,4 @@
-// Draws the installer window background: swift scripts/make_dmg_background.swift build/dmg-bg.png
+// Draws the installer window background: swift scripts/make_dmg_background.swift build.noindex/dmg-bg.png
 // 660x440 pt at 2x. A mid-tone background keeps Finder's own icon labels readable in light and dark mode.
 import AppKit
 
@@ -62,4 +62,4 @@ text("系统设置 → 隐私与安全性 → 拉到最下面，点「仍要打�
 text("或在终端运行：", size: 12, weight: .regular, alpha: 0.8, centerY: 385)
 text("xattr -dr com.apple.quarantine /Applications/LyricsFlow.app", size: 11.5, weight: .medium, alpha: 0.95, centerY: 408, mono: true)
 
-try rep.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: CommandLine.arguments.dropFirst().first ?? "build/dmg-bg.png"))
+try rep.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: CommandLine.arguments.dropFirst().first ?? "build.noindex/dmg-bg.png"))

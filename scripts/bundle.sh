@@ -18,7 +18,7 @@ else
     BINS+=("$(swift build -c "$CONFIG" --triple "${a}-apple-macosx" --show-bin-path)/LyricsFlow")
   done
 fi
-APP="build/LyricsFlow.app"
+APP="build.noindex/LyricsFlow.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 if (( ${#BINS[@]} > 1 )); then

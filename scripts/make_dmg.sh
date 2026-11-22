@@ -8,15 +8,15 @@ export VERSION="${VERSION:-0.2.0}"
 VOL="LyricsFlow"
 ARCHS="arm64 x86_64" scripts/bundle.sh release
 
-swift scripts/make_dmg_background.swift build/dmg-bg.png
+swift scripts/make_dmg_background.swift build.noindex/dmg-bg.png
 
-STAGE="build/dmg-stage"
-RW="build/LyricsFlow-rw.dmg"
-OUT="build/LyricsFlow-${VERSION}.dmg"
+STAGE="build.noindex/dmg-stage"
+RW="build.noindex/LyricsFlow-rw.dmg"
+OUT="build.noindex/LyricsFlow-${VERSION}.dmg"
 rm -rf "$STAGE" "$RW" "$OUT"
 mkdir -p "$STAGE/.background"
-cp -R build/LyricsFlow.app "$STAGE/"
-cp build/dmg-bg.png "$STAGE/.background/bg.png"
+cp -R build.noindex/LyricsFlow.app "$STAGE/"
+cp build.noindex/dmg-bg.png "$STAGE/.background/bg.png"
 ln -s /Applications "$STAGE/Applications"
 
 hdiutil detach "/Volumes/$VOL" >/dev/null 2>&1 || true
@@ -49,5 +49,5 @@ APPLESCRIPT
 sync
 hdiutil detach "/Volumes/$VOL" >/dev/null
 hdiutil convert "$RW" -format UDZO -imagekey zlib-level=9 -o "$OUT" >/dev/null
-rm -f "$RW"
+rm -rf "$RW" "$STAGE"
 echo "$OUT"

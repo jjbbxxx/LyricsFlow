@@ -1,7 +1,7 @@
 // App icon renderer.
-//   swift scripts/make_icon.swift . sheet            -> build/shots/icon_sheet.png (all palettes, for comparing)
+//   swift scripts/make_icon.swift . sheet            -> build.noindex/shots/icon_sheet.png (all palettes, for comparing)
 //   swift scripts/make_icon.swift . pngs             -> assets/icons/<name>.png (runtime icon choices bundled into the app)
-//   swift scripts/make_icon.swift . iconset <name>   -> build/AppIcon.iconset (then iconutil -> assets/AppIcon.icns)
+//   swift scripts/make_icon.swift . iconset <name>   -> build.noindex/AppIcon.iconset (then iconutil -> assets/AppIcon.icns)
 import AppKit
 
 let canvas: CGFloat = 1024
@@ -140,7 +140,7 @@ if mode == "sheet" {
                       withAttributes: [.font: NSFont.boldSystemFont(ofSize: 22), .foregroundColor: NSColor.white])
         }
     }
-    let out = root.appendingPathComponent("build/shots/icon_sheet.png")
+    let out = root.appendingPathComponent("build.noindex/shots/icon_sheet.png")
     try fm.createDirectory(at: out.deletingLastPathComponent(), withIntermediateDirectories: true)
     try sheet.representation(using: .png, properties: [:])!.write(to: out)
     print(out.path)
@@ -152,7 +152,7 @@ if mode == "sheet" {
 } else {
     let name = args.count > 3 ? args[3] : "aurora"
     guard let p = palettes.first(where: { $0.name == name }) else { fatalError("unknown palette \(name)") }
-    let set = root.appendingPathComponent("build/AppIcon.iconset")
+    let set = root.appendingPathComponent("build.noindex/AppIcon.iconset")
     try? fm.removeItem(at: set)
     try fm.createDirectory(at: set, withIntermediateDirectories: true)
     for base in [16, 32, 128, 256, 512] {
