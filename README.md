@@ -38,7 +38,7 @@ macOS 14 或更高，已安装“音乐”App。
 
 ```
 scripts/bundle.sh                # build/LyricsFlow.app
-VERSION=0.1.0 scripts/make_dmg.sh   # build/LyricsFlow-0.1.0.dmg（arm64 + x86_64，需在登录的桌面会话里运行）
+VERSION=0.2.0 scripts/make_dmg.sh   # build/LyricsFlow-0.2.0.dmg（arm64 + x86_64，需在登录的桌面会话里运行）
 swift scripts/make_icon.swift . pngs   # 重绘 assets/icons/*.png（运行时可选图标）
 swift scripts/make_icon.swift . iconset aurora && iconutil -c icns build/AppIcon.iconset -o assets/AppIcon.icns   # 默认图标
 ```

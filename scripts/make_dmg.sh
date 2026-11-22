@@ -1,10 +1,10 @@
 #!/bin/zsh
 # Universal LyricsFlow.app in an installer .dmg with a drag-to-Applications layout and
-# first-launch help text: VERSION=0.1.0 scripts/make_dmg.sh
+# first-launch help text: VERSION=0.2.0 scripts/make_dmg.sh
 # Window layout is set through Finder (AppleScript), so run it in a logged-in desktop session.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export VERSION="${VERSION:-0.1.0}"
+export VERSION="${VERSION:-0.2.0}"
 VOL="LyricsFlow"
 ARCHS="arm64 x86_64" scripts/bundle.sh release
 

@@ -6,7 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 CONFIG="${1:-release}"
-VERSION="${VERSION:-0.1.0}"
+VERSION="${VERSION:-0.2.0}"
 # One binary per architecture, merged with lipo (works with Command Line Tools only).
 BINS=()
 if [[ -z "${ARCHS:-}" ]]; then
