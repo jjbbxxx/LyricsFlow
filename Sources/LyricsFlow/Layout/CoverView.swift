@@ -43,7 +43,7 @@ struct CoverView: View {
         .frame(width: side, height: side)
         .clipShape(RoundedRectangle(cornerRadius: side * 0.03, style: .continuous))
         .shadow(color: .black.opacity(0.32), radius: side * 0.06, y: side * 0.03)
-        .onChange(of: track.id) { _, _ in begin() }
+        .onChange(of: track.artID) { _, _ in begin() }
     }
 
     private func begin() {

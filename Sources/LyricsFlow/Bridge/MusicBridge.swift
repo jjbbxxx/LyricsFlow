@@ -18,7 +18,8 @@ final class MusicBridge {
 
     private var currentKey: String?
     private var currentTrackID = 0
-    private var artworkRetries = 0
+    private var artwork = ArtworkState(start: .distantPast, previousData: nil)
+    private var lastTrack: Track?
     private var currentSnapshot: MusicSnapshot?
     private var pollQueued = false
     private var lyricsTask: Task<Void, Never>?
@@ -83,24 +84,45 @@ final class MusicBridge {
         let position = snap.positionSeconds + (playing ? latency / 2 : 0)
 
         if snap.trackKey != currentKey {
-            currentKey = snap.trackKey
-            currentSnapshot = snap
-            artworkRetries = 3
-            let track = makeTrack(snap, cover: fetchCover())
-            let id = track.id
-            currentTrackID = id
-            DispatchQueue.main.async { self.model.present(track: track, position: position, playing: playing) }
-            startLyricsSearch(for: snap, trackID: id)
+            presentNewTrack(snap, position: position, playing: playing)
         } else {
-            if artworkRetries > 0, let cover = fetchCover() {
-                artworkRetries = 0
-                let track = makeTrack(snap, cover: cover, id: currentTrackID)
-                DispatchQueue.main.async { self.model.update(track: track) }
-            } else if artworkRetries > 0 {
-                artworkRetries -= 1
-            }
+            retryArtwork(snap)
             DispatchQueue.main.async { self.model.sync(position: position, playing: playing) }
         }
+    }
+
+    private func presentNewTrack(_ snap: MusicSnapshot, position: Double, playing: Bool) {
+        let sameAlbum = currentSnapshot.map { $0.album == snap.album && $0.artist == snap.artist } ?? false
+        currentKey = snap.trackKey
+        currentSnapshot = snap
+        artwork = ArtworkState(start: Date(), previousData: artwork.shownData, sameAlbumAsPrevious: sameAlbum)
+        let found = findCover(snap)
+        let track = makeTrack(snap, cover: found?.image, carryFrom: lastTrack)
+        artwork = artwork.attempted(found: found, carried: found == nil && lastTrack != nil)
+        lastTrack = track
+        currentTrackID = track.id
+        DispatchQueue.main.async { self.model.present(track: track, position: position, playing: playing) }
+        startLyricsSearch(for: snap, trackID: track.id)
+    }
+
+    /// Keeps looking until a cover turns up; drops a carried-over cover after a few seconds.
+    private func retryArtwork(_ snap: MusicSnapshot) {
+        guard !artwork.resolved else { return }
+        let now = Date()
+        let elapsed = now.timeIntervalSince(artwork.start)
+        var next: Track?
+        if CoverRetryPolicy.shouldTry(elapsed: elapsed, sinceLastAttempt: now.timeIntervalSince(artwork.lastAttempt)) {
+            let found = findCover(snap)
+            artwork = artwork.attempted(found: found, carried: artwork.carried)
+            if let found { next = makeTrack(snap, cover: found.image, id: currentTrackID) }
+        }
+        if next == nil, artwork.carried, CoverRetryPolicy.shouldDropCarriedCover(elapsed: elapsed) {
+            artwork = artwork.attempted(found: nil, carried: false)
+            next = makeTrack(snap, cover: nil, id: currentTrackID)
+        }
+        guard let track = next else { return }
+        lastTrack = track
+        DispatchQueue.main.async { self.model.update(track: track) }
     }
 
     private func startLyricsSearch(for snap: MusicSnapshot, trackID: Int, refresh: Bool = false) {
@@ -122,20 +144,29 @@ final class MusicBridge {
     private func reset(_ status: PlaybackStatus) {
         lyricsTask?.cancel()
         currentKey = nil
+        lastTrack = nil
         DispatchQueue.main.async { self.model.setIdle(status) }
     }
 
-    private func makeTrack(_ snap: MusicSnapshot, cover: NSImage?, id: Int? = nil) -> Track {
+    private func makeTrack(_ snap: MusicSnapshot, cover: NSImage?, id: Int? = nil, carryFrom: Track? = nil) -> Track {
         TrackFactory.make(
             id: id ?? TrackFactory.nextID(),
             title: snap.title, artist: snap.artist, album: snap.album,
-            duration: snap.durationSeconds, cover: cover
+            duration: snap.durationSeconds, cover: cover, carryFrom: carryFrom
         )
     }
 
-    private func fetchCover() -> NSImage? {
-        guard let desc = try? run(&artScript, MusicScripts.artwork), desc.data.count > 16 else { return nil }
-        return NSImage(data: desc.data)
+    /// AppleScript first; streamed tracks often expose no artwork there, so fall back to the
+    /// image Music itself already downloaded (local cache, no network).
+    private func findCover(_ snap: MusicSnapshot) -> FoundCover? {
+        if let desc = try? run(&artScript, MusicScripts.artwork), desc.data.count > 16,
+           !artwork.isStale(desc.data),
+           let image = NSImage(data: desc.data) {
+            return FoundCover(image: image, data: desc.data)
+        }
+        let cached = MusicArtworkCache.cover(title: snap.title, artist: snap.artist,
+                                             album: snap.album, duration: snap.durationSeconds)
+        return cached.map { FoundCover(image: $0, data: nil) }
     }
 
     private func run(_ cache: inout NSAppleScript?, _ source: String) throws -> NSAppleEventDescriptor {

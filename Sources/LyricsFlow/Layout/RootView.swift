@@ -19,13 +19,13 @@ struct RootView: View {
             ZStack {
                 ZStack {
                     BackgroundView(palette: track.palette)
-                        .id(track.id)
+                        .id(track.artID)
                         .transition(.asymmetric(
                             insertion: .opacity,
                             removal: .opacity.animation(.linear(duration: 0.01).delay(1.5))
                         ))
                 }
-                .animation(.easeInOut(duration: 1.4), value: track.id)
+                .animation(.easeInOut(duration: 1.4), value: track.artID)
 
                 Group {
                     if portrait { PortraitLayout(track: track, size: geo.size) }
